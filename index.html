@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DK">
+<meta name="theme-color" content="#f3f1ea">
+<title>DK</title>
+<link rel="manifest" href="manifest.webmanifest">
+<script src="vendor/hash-wasm/argon2.umd.min.js"></script>
+<style>
+  :root {
+    --bg-1: #f4f1ea;
+    --bg-2: #e8efe9;
+    --bg-3: #f1ece6;
+    --surface: #fcfbf7;
+    --ink: #43473e;
+    --ink-soft: #757a6c;
+    --line: #e4dfd3;
+    --accent: #7c9885;
+    --accent-strong: #5f7e6b;
+    --accent-soft: #eaf0ea;
+    --danger: #b08068;
+    --radius-lg: 22px;
+    --radius: 13px;
+    --shadow: 0 18px 40px -22px rgba(73, 82, 64, 0.45),
+              0 4px 14px -8px rgba(73, 82, 64, 0.25);
+    --font: ui-rounded, "SF Pro Rounded", system-ui, "Segoe UI", "Hiragino Maru Gothic ProN", sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 800px at 12% -10%, var(--bg-2), transparent 60%),
+      radial-gradient(1000px 700px at 110% 10%, var(--bg-3), transparent 55%),
+      var(--bg-1);
+    background-attachment: fixed;
+    min-height: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding:
+      calc(env(safe-area-inset-top) + 16px)
+      calc(env(safe-area-inset-right) + 18px)
+      calc(env(safe-area-inset-bottom) + 24px)
+      calc(env(safe-area-inset-left) + 18px);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  main {
+    width: 100%;
+    max-width: 440px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: clamp(20px, 4.5vw, 30px);
+    animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    main { animation: none; }
+    * { transition: none !important; }
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0 0 16px;
+  }
+  .brand b {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .brand span {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .field { margin-bottom: 12px; }
+
+  .field-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+  }
+
+  label.cap {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.4px;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="number"] {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 16px;
+    color: var(--ink);
+    background: #fbfaf5;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  }
+  input::placeholder { color: #b6b3a6; }
+  input:focus {
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  input[type="number"] { max-width: 130px; }
+
+  .linkbtn {
+    border: none;
+    background: none;
+    font-family: var(--font);
+    font-size: 12.5px;
+    color: var(--accent-strong);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .linkbtn:hover { background: var(--accent-soft); }
+  .linkbtn:active { transform: translateY(1px); }
+
+  fieldset.cats {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 15px 13px;
+    margin: 0 0 14px;
+    background: #fbfaf5;
+  }
+  fieldset.cats legend {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.4px;
+    padding: 0 6px;
+  }
+
+  .cat-head, .cat-row {
+    display: grid;
+    grid-template-columns: 1fr 64px 64px;
+    align-items: center;
+    gap: 6px;
+  }
+  .cat-head {
+    margin-bottom: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .cat-head span {
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-align: center;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+  .cat-head span:first-child { text-align: left; }
+
+  .cat-row { padding: 5px 0; }
+  .cat-row + .cat-row { border-top: 1px solid #f0ece2; }
+  .cat-name { font-size: 14.5px; }
+
+  .chk {
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .chk input {
+    width: 21px;
+    height: 21px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  button.primary {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 16.5px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #fff;
+    background: var(--accent-strong);
+    border: none;
+    border-radius: var(--radius);
+    padding: 13px;
+    cursor: pointer;
+    box-shadow: 0 10px 22px -12px rgba(95, 126, 107, 0.9);
+    transition: transform 0.12s, background 0.18s, box-shadow 0.18s;
+  }
+  button.primary:hover { background: #56745f; }
+  button.primary:active { transform: translateY(1px); box-shadow: 0 6px 14px -10px rgba(95,126,107,0.9); }
+  button.primary:disabled { opacity: 0.65; cursor: default; transform: none; }
+
+  .result-wrap {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  output#result {
+    display: block;
+    min-height: 44px;
+    font-family: var(--mono);
+    font-size: 17px;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    color: var(--ink);
+    word-break: break-all;
+    background: var(--accent-soft);
+    border: 1px solid #dde7de;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    transition: background 0.2s;
+  }
+  output#result:empty::before {
+    content: "—";
+    color: #aab3a6;
+  }
+  output#result.error {
+    background: #f6ece4;
+    border-color: #e9d6c7;
+    color: var(--danger);
+    font-family: var(--font);
+    font-size: 14.5px;
+    letter-spacing: 0;
+  }
+
+  button.copy {
+    align-self: flex-end;
+    font-family: var(--font);
+    font-size: 13.5px;
+    color: var(--accent-strong);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s, border-color 0.15s;
+  }
+  button.copy:hover { background: var(--accent-soft); border-color: #d6e0d7; }
+  button.copy:active { transform: translateY(1px); }
+  button.copy.done { color: var(--accent-strong); background: var(--accent-soft); }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><b>DK</b><span>generator</span></div>
+
+  <div class="field">
+    <div class="field-head">
+      <label class="cap" for="masterKey">masterKey</label>
+      <button id="toggle" class="linkbtn" type="button">show</button>
+    </div>
+    <input id="masterKey" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <div class="field-head"><label class="cap" for="seed">seed</label></div>
+    <input id="seed" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <div class="field-head"><label class="cap" for="length">length</label></div>
+    <input id="length" type="number" min="1" max="88" placeholder="required">
+  </div>
+
+  <fieldset class="cats">
+    <legend>character set</legend>
+    <div class="cat-head"><span>category</span><span>allow</span><span>require</span></div>
+
+    <div class="cat-row">
+      <span class="cat-name">lowercase</span>
+      <label class="chk"><input id="allowLowercase" type="checkbox" checked></label>
+      <label class="chk"><input id="requireLowercase" type="checkbox" checked></label>
+    </div>
+    <div class="cat-row">
+      <span class="cat-name">uppercase</span>
+      <label class="chk"><input id="allowUppercase" type="checkbox" checked></label>
+      <label class="chk"><input id="requireUppercase" type="checkbox" checked></label>
+    </div>
+    <div class="cat-row">
+      <span class="cat-name">numbers</span>
+      <label class="chk"><input id="allowNumbers" type="checkbox" checked></label>
+      <label class="chk"><input id="requireNumbers" type="checkbox" checked></label>
+    </div>
+    <div class="cat-row">
+      <span class="cat-name">specials</span>
+      <label class="chk"><input id="allowSpecials" type="checkbox" checked></label>
+      <label class="chk"><input id="requireSpecials" type="checkbox" checked></label>
+    </div>
+  </fieldset>
+
+  <button id="generate" class="primary" type="button">generate</button>
+
+  <div class="result-wrap">
+    <output id="result"></output>
+    <button id="copy" class="copy" type="button">copy</button>
+  </div>
+</main>
+
+<script type="module">
+import { generatePassword } from "./app.js";
+
+const $ = (id) => document.getElementById(id);
+const flags = [
+  "allowLowercase", "requireLowercase",
+  "allowUppercase", "requireUppercase",
+  "allowNumbers", "requireNumbers",
+  "allowSpecials", "requireSpecials",
+];
+
+$("generate").addEventListener("click", async () => {
+  const btn = $("generate");
+  const prev = btn.textContent;
+  const result = $("result");
+  btn.disabled = true;
+  btn.textContent = "計算中…";
+  result.classList.remove("error");
+  result.textContent = "";
+  try {
+    const lengthRaw = $("length").value.trim();
+    if (lengthRaw === "") throw new Error("length is required");
+    const meta = { length: parseInt(lengthRaw, 10) };
+    for (const f of flags) meta[f] = $(f).checked;
+    const pw = await generatePassword({
+      masterKey: $("masterKey").value,
+      seed: $("seed").value,
+      metadata: meta,
+      argon2id: window.hashwasm.argon2id,
+    });
+    result.textContent = pw;
+  } catch (e) {
+    result.classList.add("error");
+    result.textContent = "Error: " + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = prev;
+  }
+});
+
+$("toggle").addEventListener("click", () => {
+  const m = $("masterKey");
+  const showing = m.type === "text";
+  m.type = showing ? "password" : "text";
+  $("toggle").textContent = showing ? "show" : "hide";
+});
+
+$("copy").addEventListener("click", async () => {
+  const t = $("result").textContent;
+  if (t && !$("result").classList.contains("error")) {
+    try {
+      await navigator.clipboard.writeText(t);
+      const c = $("copy");
+      c.textContent = "copied";
+      c.classList.add("done");
+      setTimeout(() => { c.textContent = "copy"; c.classList.remove("done"); }, 1400);
+    } catch {}
+  }
+});
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+}
+</script>
+</body>
+</html>
